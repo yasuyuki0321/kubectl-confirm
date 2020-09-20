@@ -1,12 +1,12 @@
 # Go パラメータ
-GOCMD = go
-GOFMT = goimports
-GOBUILD = $(GOCMD) build
-GOCLEAN = $(GOCMD) clean
-GOTEST = $(GOCMD) test
-GOGET = $(GOCMD) get
-GOFILES := $(shell find . -name "*.go")
-BINARY_NAME = kubectl-confirm
+GOCMD?=go
+GOFMT:=goimports
+GOBUILD:=$(GOCMD) build
+GOCLEAN:=$(GOCMD) clean
+GOTEST:=$(GOCMD) test
+GOGET:=$(GOCMD) get
+GOFILES:=$(shell find . -name "*.go")
+BINARY_NAME:=kubectl-confirm
 
 .PHONY: fmt
 fmt:
@@ -23,4 +23,5 @@ clean:
 
 .PHONY: install
 install:
+	make build
 	mv ${BINARY_NAME} /usr/local/bin/${BINARY_NAME}
