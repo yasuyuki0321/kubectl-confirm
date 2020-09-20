@@ -114,43 +114,39 @@ func execCommand(command string) string {
 }
 
 func main() {
-	// パイプでの標準入力があるかを確認
 	stdinFileInfo, _ := os.Stdin.Stat()
+	//前にパイプなし
 	if (stdinFileInfo.Mode() & os.ModeCharDevice) != 0 {
-		// パイプなし
 		command := strings.Join(getCommand(), " ")
 		displayInfo(getContext(), command)
 
-		// 後ろにパイブが続く場合に確認は行わない
-		stdout, err := os.Stdout.Stat()
-		if err != nil {
-			log.Fatal(err)
-		}
+		// 後ろにパイブが続く場合には、確認は行わない
+		stdout, _ := os.Stdout.Stat()
 		if stdout.Mode()&os.ModeNamedPipe == 0 {
+			// 後ろにパイブがない場合
 			if askForConfirmation() {
 				fmt.Println(execCommand(command))
 			}
 		} else {
+			// 後ろにパイブがある場合
 			fmt.Println(execCommand(command))
 		}
-
+	// 前にパイプあり
 	} else {
-		// パイプあり
-		// 標準入力からの読み取り(goroutine)
+		// 標準入力からの読み取り
 		command := getCommand()
 		displayInfo(getContext(), strings.Join(getCommand(), " "))
 
+		// パイプで渡された処理は一時ファイルに保存
 		tmpFile := readStdin()
-
-		// 最後の1をパイプで渡された内容のファイルに置換
+		// 最後の「-」をパイプで渡された内容のファイル名(tmpRile)に置換
 		command[len(command)-1] = tmpFile.Name()
 
 		if askForConfirmation() {
 			commandStr := strings.Join(command, " ")
 			fmt.Println(execCommand(commandStr))
 		}
-
-		// tmpファイルのcloseと削除
+		// tmpFileのcloseと削除
 		defer os.Remove(tmpFile.Name())
 		defer tmpFile.Close()
 	}
