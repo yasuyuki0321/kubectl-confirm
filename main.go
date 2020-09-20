@@ -103,11 +103,6 @@ func askForConfirmation() bool {
 
 func execCommand(command string) string {
 	out, _ := exec.Command("sh", "-c", command).CombinedOutput()
-
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
 	return string(out)
 }
 
