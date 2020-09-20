@@ -36,8 +36,6 @@ func getCommand() []string {
 	var cmd []string
 	cmd = append(cmd, flag.Args()...)
 
-	fmt.Println(cmd)
-
 	if len(cmd) != 0 {
 		cmd = append(cmd[:1], cmd[0:]...)
 		cmd[0] = "kubectl"
@@ -104,11 +102,11 @@ func askForConfirmation() bool {
 }
 
 func execCommand(command string) string {
-	out, err := exec.Command("sh", "-c", command).CombinedOutput()
+	out, _ := exec.Command("sh", "-c", command).CombinedOutput()
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	return string(out)
 }
