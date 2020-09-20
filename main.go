@@ -131,8 +131,8 @@ func main() {
 			// 後ろにパイブがある場合
 			fmt.Println(execCommand(command))
 		}
-	// 前にパイプあり
 	} else {
+		// 前にパイプあり
 		// 標準入力からの読み取り
 		command := getCommand()
 		displayInfo(getContext(), strings.Join(getCommand(), " "))
