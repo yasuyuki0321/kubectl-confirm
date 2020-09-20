@@ -33,9 +33,17 @@ func displayInfo(context, command string) {
 
 // コマンドを引数から取得する
 func getCommand() []string {
-	cmd := flag.Args()
-	cmd = append(cmd[:1], cmd[0:]...)
-	cmd[0] = "kubectl"
+	var cmd []string
+	cmd = append(cmd, flag.Args()...)
+
+	fmt.Println(cmd)
+
+	if len(cmd) != 0 {
+		cmd = append(cmd[:1], cmd[0:]...)
+		cmd[0] = "kubectl"
+	} else {
+		cmd = append(cmd, "kubectl")
+	}
 
 	return cmd
 }
@@ -66,7 +74,7 @@ func readStdin() *os.File {
 // 実行前の確認
 func askForConfirmation() bool {
 	// promptの出力
-	fmt.Print("Execute OK Y/N:")
+	fmt.Print("Are you sure? [Y/n]: ")
 
 	// /dev/ttyを開く
 	tty, err := os.Open("/dev/tty")
