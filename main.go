@@ -106,39 +106,90 @@ func execCommand(command string) string {
 	return string(out)
 }
 
-func main() {
-	stdinFileInfo, _ := os.Stdin.Stat()
-	//前にパイプなし
-	if (stdinFileInfo.Mode() & os.ModeCharDevice) != 0 {
-		command := strings.Join(getCommand(), " ")
-		displayInfo(getContext(), command)
+// 文字列に配列に指定した単語が含まれるかを確認する
+func confirmSentenceContainWords(sentence string, words []string) bool {
+	sentences := strings.Split(sentence, " ")
 
-		// 後ろにパイブが続く場合には、確認は行わない
-		stdout, _ := os.Stdout.Stat()
-		if stdout.Mode()&os.ModeNamedPipe == 0 {
-			// 後ろにパイブがない場合
-			if askForConfirmation() {
-				fmt.Println(execCommand(command))
+	for _, word := range words {
+		for _, sentence := range sentences[1:] {
+			if sentence == word {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// ファイルに記述されている言葉を配列に変換して返す
+func convertFileWordsToArray(assetName string) []string {
+	// file, err := Assets.Open(assetName)
+	file, err := Assets.Open(assetName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	buf := make([]byte, 64)
+	for {
+		n, err := file.Read(buf)
+		if n == 0 {
+			break
+		}
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	words := strings.Split(string(buf), "\n")
+	return words
+}
+
+func main() {
+	// 標準入力からの読み取り
+	command := getCommand()
+	//除外コマンドのリスト作成
+	excludeCommands := convertFileWordsToArray("/config/exclude_commands.conf")
+
+	// 前にパイプなし
+	stdinFileInfo, _ := os.Stdin.Stat()
+	if (stdinFileInfo.Mode() & os.ModeCharDevice) != 0 {
+		commandStr := strings.Join(command, " ")
+
+		// excludeCommandsに含まれないコマンドの場合、確認を実行
+		if confirmSentenceContainWords(commandStr, excludeCommands) == false {
+			displayInfo(getContext(), commandStr)
+
+			// 後ろにパイブが続く場合には、確認は行わない
+			stdout, _ := os.Stdout.Stat()
+			if stdout.Mode()&os.ModeNamedPipe == 0 {
+				// 後ろにパイブがない場合
+				if askForConfirmation() {
+					fmt.Println(execCommand(commandStr))
+				}
 			}
 		} else {
 			// 後ろにパイブがある場合
-			fmt.Println(execCommand(command))
+			fmt.Println(execCommand(commandStr))
 		}
 	} else {
 		// 前にパイプあり
-		// 標準入力からの読み取り
-		command := getCommand()
-		displayInfo(getContext(), strings.Join(getCommand(), " "))
 
 		// パイプで渡された処理は一時ファイルに保存
 		tmpFile := readStdin()
 		// 最後の「-」をパイプで渡された内容のファイル名(tmpRile)に置換
-		command[len(command)-1] = tmpFile.Name()
+		commandForInfo := strings.Join(command, " ")
 
-		if askForConfirmation() {
-			commandStr := strings.Join(command, " ")
-			fmt.Println(execCommand(commandStr))
+		command[len(command)-1] = tmpFile.Name()
+		commandStr := strings.Join(command, " ")
+
+		// excludeCommandsに含まれないコマンドの場合、確認を実行
+		if confirmSentenceContainWords(commandStr, excludeCommands) == false {
+
+			displayInfo(getContext(), commandForInfo)
+			if askForConfirmation() {
+				fmt.Println(execCommand(commandStr))
+			}
 		}
+
 		// tmpFileのcloseと削除
 		defer os.Remove(tmpFile.Name())
 		defer tmpFile.Close()
