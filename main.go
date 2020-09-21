@@ -24,10 +24,20 @@ func getContext() string {
 	return string(context)
 }
 
-func displayInfo(context, command string) {
+// ファイルの存在確認する 
+func fileExists(name string) bool {
+    _, err := os.Stat(name)
+    return !os.IsNotExist(err)
+}
+
+// コンテキストや実行コマンドの情報を表示する
+func displayInfo(context, command string, tmpFile string) {
 	fmt.Printf("#%s\n", strings.Repeat("-", 20))
 	fmt.Printf("# Context: %s", context)
 	fmt.Printf("# Command: %s\n", command)
+	if fileExists(tmpFile){
+		fmt.Printf("# Manifest: %s\n", tmpFile)
+	}
 	fmt.Printf("#%s\n", strings.Repeat("-", 20))
 }
 
@@ -156,7 +166,7 @@ func main() {
 
 		// excludeCommandsに含まれないコマンドの場合、確認を実行
 		if confirmSentenceContainWords(commandStr, excludeCommands) == false {
-			displayInfo(getContext(), commandStr)
+			displayInfo(getContext(), commandStr, "")
 
 			// 後ろにパイブが続く場合には、確認は行わない
 			stdout, _ := os.Stdout.Stat()
@@ -184,7 +194,7 @@ func main() {
 		// excludeCommandsに含まれないコマンドの場合、確認を実行
 		if confirmSentenceContainWords(commandStr, excludeCommands) == false {
 
-			displayInfo(getContext(), commandForInfo)
+			displayInfo(getContext(), commandForInfo, tmpFile.Name())
 			if askForConfirmation() {
 				fmt.Println(execCommand(commandStr))
 			}
