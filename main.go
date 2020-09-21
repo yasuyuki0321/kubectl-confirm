@@ -24,7 +24,7 @@ func getContext() string {
 	return string(context)
 }
 
-// ファイルの存在確認する 
+// ファイルの存を在確認する
 func fileExists(name string) bool {
     _, err := os.Stat(name)
     return !os.IsNotExist(err)
@@ -184,6 +184,7 @@ func main() {
 		// 前にパイプあり
 
 		// パイプで渡された処理は一時ファイルに保存
+		os.Setenv("TMPDIR", "/var/tmp")
 		tmpFile := readStdin()
 		// 最後の「-」をパイプで渡された内容のファイル名(tmpRile)に置換
 		commandForInfo := strings.Join(command, " ")
