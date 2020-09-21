@@ -122,6 +122,12 @@ func execCommand(command string) string {
 func confirmSentenceContainWords(sentence string, words []string) bool {
 	sentences := strings.Split(sentence, " ")
 
+	if len(sentences) == 1 {
+		if sentences[0] == "kubectl" {
+			return true
+		}
+	}
+
 	for _, word := range words {
 		for _, sentence := range sentences[1:] {
 			if sentence == word {
@@ -174,6 +180,7 @@ func isOutputToPipe() bool {
 	return true
 }
 
+
 //go:generate go-assets-builder --output=bindata.go config/exclude_commands.conf
 
 func main() {
@@ -196,6 +203,7 @@ func main() {
 			if isOutputToPipe() == false {
 				// 後ろにパイブがない場合
 				if askForConfirmation() {
+					fmt.Println("")
 					fmt.Println(execCommand(commandStr))
 				}
 			}
@@ -221,6 +229,7 @@ func main() {
 			// excludeCommandsに含まれない場合、確認後コマンドを実行
 			displayInfo(getContext(), commandForInfo, tmpFile.Name())
 			if askForConfirmation() {
+				fmt.Println("")
 				fmt.Println(execCommand(commandStr))
 			}
 		}
