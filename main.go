@@ -58,6 +58,8 @@ func getCommand() []string {
 
 // StdInで読み込んだ結果をファイルに保存
 func readStdin() *os.File {
+	// 一時ファイル保存先を変更
+	os.Setenv("TMPDIR", "/var/tmp")
 	tmpFile, err := ioutil.TempFile("", "tmp-")
 
 	if err != nil {
@@ -99,7 +101,6 @@ func askForConfirmation() bool {
 	}
 
 	answer := strings.ToLower(strings.TrimSpace(string(buf[:n])))
-
 	switch answer {
 	case "y", "yes":
 		return true
@@ -111,6 +112,7 @@ func askForConfirmation() bool {
 	}
 }
 
+// コマンドを実行する
 func execCommand(command string) string {
 	out, _ := exec.Command("sh", "-c", command).CombinedOutput()
 	return string(out)
@@ -132,7 +134,6 @@ func confirmSentenceContainWords(sentence string, words []string) bool {
 
 // ファイルに記述されている言葉を配列に変換して返す
 func convertFileWordsToArray(assetName string) []string {
-	// file, err := Assets.Open(assetName)
 	file, err := Assets.Open(assetName)
 	if err != nil {
 		log.Fatal(err)
@@ -148,10 +149,32 @@ func convertFileWordsToArray(assetName string) []string {
 			panic(err)
 		}
 	}
-
 	words := strings.Split(string(buf), "\n")
 	return words
 }
+
+// stdinがターミナルからのInputかを確認する
+func isInputFromTerminal() bool {
+	stdinFileInfo, _ := os.Stdin.Stat()
+	// ターミナルからのinput
+	// https://play.golang.org/p/Jk_8UoKLhX
+	if (stdinFileInfo.Mode() & os.ModeCharDevice) == 0 {
+		return false
+	}
+	// パイプから家のinput
+	return true
+}
+
+// stdoutがパイプに対してOutputしているかを確認する
+func isOutputToPipe() bool {
+	stdout, _ := os.Stdout.Stat()
+	if stdout.Mode()&os.ModeNamedPipe == 0 {
+		return false
+	}
+	return true
+}
+
+//go:generate go-assets-builder --output=bindata.go config/exclude_commands.conf
 
 func main() {
 	// 標準入力からの読み取り
@@ -159,9 +182,8 @@ func main() {
 	//除外コマンドのリスト作成
 	excludeCommands := convertFileWordsToArray("/config/exclude_commands.conf")
 
-	// 前にパイプなし
-	stdinFileInfo, _ := os.Stdin.Stat()
-	if (stdinFileInfo.Mode() & os.ModeCharDevice) != 0 {
+	// ターミナルからのinput
+	if isInputFromTerminal() {
 		commandStr := strings.Join(command, " ")
 
 		// excludeCommandsに含まれないコマンドの場合、確認を実行
@@ -169,8 +191,9 @@ func main() {
 			displayInfo(getContext(), commandStr, "")
 
 			// 後ろにパイブが続く場合には、確認は行わない
-			stdout, _ := os.Stdout.Stat()
-			if stdout.Mode()&os.ModeNamedPipe == 0 {
+			// stdout, _ := os.Stdout.Stat()
+			// if stdout.Mode()&os.ModeNamedPipe == 0 {
+			if isOutputToPipe() == false {
 				// 後ろにパイブがない場合
 				if askForConfirmation() {
 					fmt.Println(execCommand(commandStr))
@@ -181,20 +204,21 @@ func main() {
 			fmt.Println(execCommand(commandStr))
 		}
 	} else {
-		// 前にパイプあり
-
+		// パイプからのinput
 		// パイプで渡された処理は一時ファイルに保存
-		os.Setenv("TMPDIR", "/var/tmp")
 		tmpFile := readStdin()
+
 		// 最後の「-」をパイプで渡された内容のファイル名(tmpRile)に置換
 		commandForInfo := strings.Join(command, " ")
 
+		// 標準入力の「-」をtmpFileに変更
 		command[len(command)-1] = tmpFile.Name()
 		commandStr := strings.Join(command, " ")
 
-		// excludeCommandsに含まれないコマンドの場合、確認を実行
+		// コマンドがexcludeCommandsに含まれないかを確認
 		if confirmSentenceContainWords(commandStr, excludeCommands) == false {
 
+			// excludeCommandsに含まれない場合、確認後コマンドを実行
 			displayInfo(getContext(), commandForInfo, tmpFile.Name())
 			if askForConfirmation() {
 				fmt.Println(execCommand(commandStr))
