@@ -5,7 +5,7 @@ GOBUILD = $(GOCMD) build
 GOCLEAN	= $(GOCMD) clean
 GOTEST = $(GOCMD) test
 GOGET = $(GOCMD) get
-
+GOGENERATE = ${GOCMD} generate
 # ターゲットパラメータ
 GOFILES	= $(shell find . -name "*.go")
 BINARY_NAME = kubectl-confirm
@@ -15,9 +15,13 @@ BINARY_NAME = kubectl-confirm
 fmt:
 	$(GOFMT) -w ${GOFILES}
 
+.PHONY: setup
+setup:
+	${GOGET} github.com/jessevdk/go-assets-builder
+
 .PHONY: build
 build:
-	go-assets-builder --output=bindata.go config/exclude_commands.conf
+	${GOGENERATE}
 	$(GOBUILD) -o $(BINARY_NAME) main.go bindata.go
 	rm -f bindata.go
 
@@ -28,5 +32,6 @@ clean:
 
 .PHONY: install
 install:
+	make setup
 	make build
 	mv $(BINARY_NAME) ${GOPATH}/bin/
