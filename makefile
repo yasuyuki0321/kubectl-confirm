@@ -19,6 +19,7 @@ fmt:
 build:
 	go-assets-builder --output=bindata.go config/exclude_commands.conf
 	$(GOBUILD) -o $(BINARY_NAME) main.go bindata.go
+	rm -f bindata.go
 
 .PHONY: clean
 clean:
