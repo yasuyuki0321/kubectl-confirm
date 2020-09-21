@@ -180,7 +180,6 @@ func isOutputToPipe() bool {
 	return true
 }
 
-
 //go:generate go-assets-builder --output=bindata.go config/exclude_commands.conf
 
 func main() {
