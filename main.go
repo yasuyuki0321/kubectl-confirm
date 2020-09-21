@@ -26,8 +26,8 @@ func getContext() string {
 
 // ファイルの存を在確認する
 func fileExists(name string) bool {
-    _, err := os.Stat(name)
-    return !os.IsNotExist(err)
+	_, err := os.Stat(name)
+	return !os.IsNotExist(err)
 }
 
 // コンテキストや実行コマンドの情報を表示する
@@ -35,7 +35,7 @@ func displayInfo(context, command string, tmpFile string) {
 	fmt.Printf("#%s\n", strings.Repeat("-", 20))
 	fmt.Printf("# Context: %s", context)
 	fmt.Printf("# Command: %s\n", command)
-	if fileExists(tmpFile){
+	if fileExists(tmpFile) {
 		fmt.Printf("# Manifest: %s\n", tmpFile)
 	}
 	fmt.Printf("#%s\n", strings.Repeat("-", 20))
