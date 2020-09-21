@@ -22,6 +22,7 @@ test-nginx-59c9f8dff-86h48                       1/1     Running   0          21
 ### 前提
 
 kubectlがインストールされていること
+
 https://kubernetes.io/ja/docs/tasks/tools/install-kubectl/
 
 ### インストール
