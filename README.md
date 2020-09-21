@@ -2,7 +2,7 @@
 
 ## 概要
 
-kubectlコマンド実行時に、コンテキス及び実行するコマンドの確認プロンプトを表示する
+kubectlコマンド実行時に、コンテキス及び実行するコマンドの確認プロンプトを表示する、kubectlのプラグイン
 
 実行例
 
@@ -21,7 +21,7 @@ test-nginx-59c9f8dff-86h48                       1/1     Running   0          21
 
 ### 前提
 
-- kubectlがインストールされていること  
+- kubectlがインストールされていること
 https://kubernetes.io/ja/docs/tasks/tools/install-kubectl/
 
 ### インストール
