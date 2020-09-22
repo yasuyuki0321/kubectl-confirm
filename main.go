@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"bufio"
 )
 
 func init() {
@@ -94,7 +95,7 @@ func askForConfirmation() bool {
 	defer tty.Close()
 
 	// bufferにキーボードからの入力を出力
-	buf := make([]byte, 5)
+	buf := make([]byte, 32)
 	n, err := tty.Read(buf)
 	if err != nil && err != io.EOF {
 		log.Fatal(err)
@@ -155,22 +156,18 @@ func confirmSentenceContainWords(sentence string, words []string) bool {
 
 // ファイルに記述されている言葉を配列に変換して返す
 func convertFileWordsToArray(assetName string) []string {
-	file, err := Assets.Open(assetName)
+	fp, err := Assets.Open(assetName)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	buf := make([]byte, 64)
-	for {
-		n, err := file.Read(buf)
-		if n == 0 {
-			break
-		}
-		if err != nil {
-			panic(err)
-		}
+	words := make([]string, 0)
+	scanner := bufio.NewScanner(fp)
+
+	for scanner.Scan() {
+		words = append(words, scanner.Text())
 	}
-	words := strings.Split(string(buf), "\n")
+
 	return words
 }
 
