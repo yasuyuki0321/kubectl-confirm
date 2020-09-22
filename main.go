@@ -118,6 +118,21 @@ func execCommand(command string) string {
 	return string(out)
 }
 
+// 配列に指定した文字列が含まれるかを
+func searchStringInArray(arr []string, str string) int {
+	i := 0
+	for _, v := range(arr){
+		if v == "-"{
+			break
+		}
+		i++
+	}
+	if len(arr) == i {
+		return -1
+	}
+	return i
+}
+
 // 文字列に配列に指定した単語が含まれるかを確認する
 func confirmSentenceContainWords(sentence string, words []string) bool {
 	sentences := strings.Split(sentence, " ")
@@ -197,8 +212,6 @@ func main() {
 			displayInfo(getContext(), commandStr, "")
 
 			// 後ろにパイブが続く場合には、確認は行わない
-			// stdout, _ := os.Stdout.Stat()
-			// if stdout.Mode()&os.ModeNamedPipe == 0 {
 			if isOutputToPipe() == false {
 				// 後ろにパイブがない場合
 				if askForConfirmation() {
@@ -214,12 +227,10 @@ func main() {
 		// パイプからのinput
 		// パイプで渡された処理は一時ファイルに保存
 		tmpFile := readStdin()
-
-		// 最後の「-」をパイプで渡された内容のファイル名(tmpRile)に置換
 		commandForInfo := strings.Join(command, " ")
 
 		// 標準入力の「-」をtmpFileに変更
-		command[len(command)-1] = tmpFile.Name()
+		command[searchStringInArray(command, "-")] = tmpFile.Name()
 		commandStr := strings.Join(command, " ")
 
 		// コマンドがexcludeCommandsに含まれないかを確認
